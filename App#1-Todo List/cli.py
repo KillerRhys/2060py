@@ -8,16 +8,39 @@ todo_list = []
 fin_list = []
 is_running = True
 
-# Get saved data / create files on first run.
-with open("data/todo.dat", "w+") as todo_file:
-    things = todo_file.readlines()
-    for item in things:
-        todo_list.append(item)
 
-with open("data/fin.dat", "w+") as fin_file:
-    completed = fin_file.readlines()
-    for item in completed:
-        fin_list.append(item)
+def load_data():
+    # Get saved data / create files on first run.
+    try:
+        with open("data/todo.dat", "r+") as todo_file:
+            things = todo_file.readlines()
+            for line in things:
+                todo_list.append(f"{line.strip("\n")}")
+    except FileNotFoundError:
+        with open("data/todo.dat", "w+") as todo_file:
+            todo_file.write("")
+            print("File was created.")
+
+    try:
+        with open("data/fin.dat", "r+") as fin_file:
+            completed = fin_file.readlines()
+            for item in completed:
+                fin_list.append(item)
+    except FileNotFoundError:
+        with open("data/fin.dat", "w+") as fin_file:
+            fin_file.write("")
+            print("File was created")
+
+
+# Save Data function
+def save_data():
+    with open("data/todo.dat", "w+") as todo_file:
+        for item in todo_list:
+            todo_file.write(f"{item}\n")
+
+    with open("data/fin.dat", "w+") as fin_file:
+        for item in fin_list:
+            fin_file.write(f"{item}\n")
 
 
 def show_items():
@@ -31,6 +54,10 @@ def show_items():
 
         for i, j in enumerate(li):
             print(f'{i}-{j}')
+
+
+# Build list or create files.
+load_data()
 
 
 # main logic.
@@ -73,4 +100,5 @@ while is_running:
                 todo_list.pop(int(fin_item))
 
         case "Exit":
+            save_data()
             exit()
