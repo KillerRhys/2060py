@@ -24,8 +24,8 @@ def load_data():
     try:
         with open("data/fin.dat", "r+") as fin_file:
             completed = fin_file.readlines()
-            for item in completed:
-                fin_list.append(item.strip("\n"))
+            for task in completed:
+                fin_list.append(task.strip("\n"))
     except FileNotFoundError:
         with open("data/fin.dat", "w+") as fin_file:
             fin_file.write("")
@@ -38,16 +38,16 @@ def save_data():
         if not todo_list:
             pass
         else:
-            for item in todo_list:
-                todo_file.write(f"{item}\n")
+            for todo in todo_list:
+                todo_file.write(f"{todo}\n")
 
     with open("data/fin.dat", "w+") as fin_file:
         if not fin_list:
             pass
 
         else:
-            for item in fin_list:
-                fin_file.write(f"{item}\n")
+            for completed_task in fin_list:
+                fin_file.write(f"{completed_task}\n")
 
 
 def show_items():
@@ -79,17 +79,20 @@ while is_running:
         save_data()
 
     elif "Edit" in user_operation:
-        edit_item = int(user_operation[5:])
-        if len(todo_list) >= int(edit_item):
-            before = todo_list[int(edit_item)]
-            update_item = input("Please type you edits: ")
-            after = update_item
-            todo_list[int(edit_item)] = update_item
-            print(f"Todo: {before}, was changed to {after}.\n")
-            save_data()
+        try:
+            edit_item = int(user_operation[5:])
+            if len(todo_list) >= int(edit_item):
+                before = todo_list[int(edit_item)]
+                update_item = input("Please type you edits: ")
+                after = update_item
+                todo_list[int(edit_item)] = update_item
+                print(f"Todo: {before}, was changed to {after}.\n")
+                save_data()
 
-        else:
-            print("That's not a valid selection!")
+            else:
+                print("That's not a valid selection!")
+        except ValueError:
+            print("Incorrect command usage try 'Edit #' of the item you wish to edit.")
 
     elif "Delete" in user_operation:
         target_item = int(user_operation[7:])
