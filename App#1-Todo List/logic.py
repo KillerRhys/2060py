@@ -64,13 +64,47 @@ class Logic:
                 print(f"{i}-{j}")
 
     def add_item(self, user_operation):
-        new_item = user_operation["Add ":]
+        new_item = user_operation[4:]
         self.todos.append(new_item)
         print(f"{new_item} successfully added to list!\n")
         self.save_data()
 
     def edit_item(self, user_operation):
         try:
-            edit_item = int(user_operation["Edit ":])
-            if len[self.todos] >= edit_item:
-                pass
+            edit_item = int(user_operation[5:])
+            if len(self.todos) >= edit_item:
+                before = self.todos[int(edit_item)]
+                update_item = input("Please type your edit: ")
+                after = update_item
+                self.todos[int(edit_item)] = update_item
+                print(f" {before}, was changed to {after}.\n")
+                self.save_data()
+            else:
+                print("That is not a valid selection!")
+        except ValueError:
+            print("Incorrect command usage try 'Edit #' of the item you wish to edit.")
+
+    def delete_item(self, user_operation):
+        target_item = int(user_operation[7:])
+        if len(self.todos) >= int(target_item):
+            print(f"{self.todos[int(target_item)]} has been removed!")
+            self.todos.pop(int(target_item))
+            self.save_data()
+
+    def clear_items(self):
+        self.todos.clear()
+        self.comps.clear()
+        self.save_data()
+        print("All lists have been cleared!")
+
+    def complete_task(self, user_operation):
+        comp_item = int(user_operation[9:])
+        if len(self.todos) >= int(comp_item):
+            print(f"{self.todos[int(comp_item)]} has been completed!\n")
+            self.comps.append(self.todos[int(comp_item)])
+            self.todos.pop(int(comp_item))
+            self.save_data()
+
+    def exit_app(self):
+        self.save_data()
+        exit()
