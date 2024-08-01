@@ -25,7 +25,7 @@ class Logic:
                 self.todos = [line.strip() for line in todo_file.readlines()]
         except FileNotFoundError:
             with open(self.todo_file, 'w') as todo_file:
-                pass  # Create the file if it doesn't exist
+                todo_file.write("")  # Create the file if it doesn't exist
             print("Missing todo file was created!")
 
         try:
@@ -33,7 +33,7 @@ class Logic:
                 self.comps = [line.strip() for line in fin_file.readlines()]
         except FileNotFoundError:
             with open(self.fin_file, "w") as fin_file:
-                pass  # Create the file if it doesn't exist
+                fin_file.write("")  # Create the file if it doesn't exist
             print("Missing fin file was created!")
 
     def save_data(self):
