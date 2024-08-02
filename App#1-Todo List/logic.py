@@ -3,94 +3,116 @@
     www.mythosworks.com
     OC:2024.07.18(1600) """
 
-import os
+
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# Define the database
+DATABASE_URL = "sqlite:///todo_app.db"
+
+# Create the database engine
+engine = create_engine(DATABASE_URL, echo=True)
+
+# Create a configured "Session" class
+Session = sessionmaker(bind=engine)
+
+# Create a session
+session = Session()
+
+# Define the base class
+Base = declarative_base()
+
+
+# Define the Todo model
+class TodoItem(Base):
+    __tablename__ = 'todos'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String, nullable=False)
+    completed = Column(Boolean, default=False)
+
+
+# Create the tables in the database
+# Base.metadata.create_all(engine)
 
 
 class Logic:
-    def __init__(self, data_dir="data"):
-        self.data_dir = data_dir
-        self.todo_file = os.path.join(self.data_dir, "todo.dat")
-        self.fin_file = os.path.join(self.data_dir, "fin.dat")
+    def __init__(self):
+        self.session = session
+        self.is_running = True
         self.todos = []
         self.comps = []
-        self.mylist = [self.todos, self.comps]
-        self.is_running = True
-        self.load_data()
 
     def load_data(self):
-        os.makedirs(self.data_dir, exist_ok=True)
-
-        try:
-            with open(self.todo_file, "r") as todo_file:
-                self.todos = [line.strip() for line in todo_file.readlines()]
-        except FileNotFoundError:
-            with open(self.todo_file, 'w') as todo_file:
-                todo_file.write("")  # Create the file if it doesn't exist
-            print("Missing todo file was created!")
-
-        try:
-            with open(self.fin_file, "r") as fin_file:
-                self.comps = [line.strip() for line in fin_file.readlines()]
-        except FileNotFoundError:
-            with open(self.fin_file, "w") as fin_file:
-                fin_file.write("")  # Create the file if it doesn't exist
-            print("Missing fin file was created!")
+        self.todos = self.session.query(TodoItem).filter_by(completed=False).all()
+        self.comps = self.session.query(TodoItem).filter_by(completed=True).all()
 
     def save_data(self):
-        with open(self.todo_file, "w") as todo_file:
-            for todo in self.todos:
-                todo_file.write(f"{todo}\n")
-
-        with open(self.fin_file, "w") as fin_file:
-            for comp in self.comps:
-                fin_file.write(f"{comp}\n")
+        self.session.commit()
 
     def show_items(self):
         print("\nTodo List:")
-        for i, todo in enumerate(self.todos):
-            print(f"{i} - {todo}")
+        for todo in self.todos:
+            print(f"{todo.id} - {todo.description}")
 
         print("\nCompleted Tasks:")
-        for i, comp in enumerate(self.comps):
-            print(f"{i} - {comp}")
+        for comp in self.comps:
+            print(f"{comp.id} - {comp.description}")
 
     def add_item(self, new_item):
-        self.todos.append(new_item)
-        print(f"{new_item} successfully added to list!\n")
+        new_todo = TodoItem(description=new_item)
+        self.session.add(new_todo)
         self.save_data()
+        print(f"{new_item} successfully added to list!\n")
+        self.load_data()
 
     def edit_item(self, index, update_item):
         try:
-            before = self.todos[index]
-            self.todos[index] = update_item
-            print(f"{before} was changed to {update_item}.\n")
-            self.save_data()
-        except IndexError:
+            todo = self.session.query(TodoItem).get(index)
+            if todo and not todo.completed:
+                before = todo.description
+                todo.description = update_item
+                self.save_data()
+                print(f"{before} was changed to {update_item}.\n")
+                self.load_data()
+            else:
+                print("That is not a valid selection or item is already completed!")
+        except ValueError:
             print("That is not a valid selection!")
 
     def delete_item(self, index):
         try:
-            print(f"{self.todos[index]} has been removed!")
-            self.todos.pop(index)
-            self.save_data()
-        except IndexError:
+            todo = self.session.query(TodoItem).get(index)
+            if todo:
+                self.session.delete(todo)
+                self.save_data()
+                print(f"{todo.description} has been removed!")
+                self.load_data()
+            else:
+                print("That is not a valid selection!")
+        except ValueError:
             print("That is not a valid selection!")
 
     def clear_items(self):
-        self.todos.clear()
-        self.comps.clear()
+        self.session.query(TodoItem).delete()
         self.save_data()
+        self.load_data()
         print("All lists have been cleared!")
 
     def complete_task(self, index):
         try:
-            print(f"{self.todos[index]} has been completed!\n")
-            self.comps.append(self.todos[index])
-            self.todos.pop(index)
-            self.save_data()
-        except IndexError:
+            todo = self.session.query(TodoItem).get(index)
+            if todo and not todo.completed:
+                todo.completed = True
+                self.save_data()
+                print(f"{todo.description} has been completed!\n")
+                self.load_data()
+            else:
+                print("That is not a valid selection or item is already completed!")
+        except ValueError:
             print("That is not a valid selection!")
 
     def exit_app(self):
         self.save_data()
+        self.session.close()
         self.is_running = False

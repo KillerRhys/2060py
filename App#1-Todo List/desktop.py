@@ -1,3 +1,9 @@
+""" Todo App Desktop Version
+    Coded by TechGYQ
+    www.mythosworks.com
+    OC:2024.08.01(2200) """
+
+
 import tkinter as tk
 from tkinter import messagebox
 from logic import Logic
@@ -50,7 +56,8 @@ class TodoApp:
     def remove_task(self):
         try:
             task_index = self.listbox.curselection()[0]
-            self.logic.delete_item(task_index)
+            task_id = self.listbox.get(task_index).split(" - ")[0]
+            self.logic.delete_item(int(task_id))
             self.load_tasks()
         except IndexError:
             messagebox.showwarning("Warning", "You must select a task.")
@@ -58,17 +65,19 @@ class TodoApp:
     def complete_task(self):
         try:
             task_index = self.listbox.curselection()[0]
-            self.logic.complete_task(task_index)
+            task_id = self.listbox.get(task_index).split(" - ")[0]
+            self.logic.complete_task(int(task_id))
             self.load_tasks()
         except IndexError:
             messagebox.showwarning("Warning", "You must select a task.")
 
     def load_tasks(self):
         self.listbox.delete(0, tk.END)
+        self.logic.load_data()  # Reload data from the database
         for task in self.logic.todos:
-            self.listbox.insert(tk.END, task)
+            self.listbox.insert(tk.END, f"{task.id} - {task.description}")
         for task in self.logic.comps:
-            self.listbox.insert(tk.END, task)
+            self.listbox.insert(tk.END, f"{task.id} - {task.description}")
 
 
 if __name__ == "__main__":
