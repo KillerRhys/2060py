@@ -26,15 +26,15 @@ def index():
     form = TodoForm()
     if form.validate_on_submit():
         task = form.task.data
-        brain.add_task(task)
+        brain.add_item(task)
         return redirect(url_for('index'))
-    tasks = brain.get_tasks()
+    tasks = brain.show_items()
     return render_template('index.html', form=form, tasks=tasks)
 
 
 @app.route("/delete/<int:task_id>")
 def delete_task(task_id):
-    brain.delete_task(task_id)
+    brain.delete_item(task_id)
     return redirect(url_for('index'))
 
 
