@@ -4,11 +4,13 @@
     OC:2024.08.01(1000) """
 
 # Imports
-from logic import Logic
 from flask import Flask, render_template, redirect, url_for, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+from logic import Logic
+import sys
+from cli import run_cli
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'  # Required for WTForms
@@ -38,5 +40,12 @@ def delete_task(task_id):
     return redirect(url_for('index'))
 
 
-if __name__ == '__main__':
+def run_flask():
     app.run(debug=True)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == "cli":
+        run_cli()
+    else:
+        run_flask()

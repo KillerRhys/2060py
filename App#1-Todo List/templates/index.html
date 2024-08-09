@@ -22,7 +22,7 @@
         <ul class="list-group mt-4">
             {% for task in tasks %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ task.name }}
+                    {{ task.description }}
                     <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-danger btn-sm">Delete</a>
                 </li>
             {% endfor %}

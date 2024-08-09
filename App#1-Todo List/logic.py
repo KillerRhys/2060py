@@ -51,13 +51,8 @@ class Logic:
         self.session.commit()
 
     def show_items(self):
-        print("\nTodo List:")
-        for todo in self.todos:
-            print(f"{todo.id} - {todo.description}")
-
-        print("\nCompleted Tasks:")
-        for comp in self.comps:
-            print(f"{comp.id} - {comp.description}")
+        self.load_data()  # Ensure the data is loaded
+        return self.todos  # Return the list of todo items
 
     def add_item(self, new_item):
         new_todo = TodoItem(description=new_item)
@@ -113,6 +108,6 @@ class Logic:
             print("That is not a valid selection!")
 
     def exit_app(self):
+        self.is_running = False  # Set to False to exit the loop
         self.save_data()
         self.session.close()
-        self.is_running = False
