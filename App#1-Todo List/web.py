@@ -8,7 +8,7 @@ from flask import Flask, render_template, redirect, url_for, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
-from logic import Logic
+from logic import Logic, TodoItem
 import sys
 from cli import run_cli
 
@@ -32,6 +32,19 @@ def index():
         return redirect(url_for('index'))
     tasks = brain.show_items()
     return render_template('index.html', form=form, tasks=tasks)
+
+
+@app.route("/edit/<int:task_id>", methods=['GET', 'POST'])
+def edit_task(task_id):
+    task_to_edit = brain.session.query(TodoItem).get(task_id)
+    form = TodoForm(obj=task_to_edit)
+
+    if form.validate_on_submit():
+        new_task_name = form.task.data
+        brain.edit_item(task_id, new_task_name)
+        return redirect(url_for('index'))
+
+    return render_template('edit.html', form=form, task_id=task_id)
 
 
 @app.route("/delete/<int:task_id>")
