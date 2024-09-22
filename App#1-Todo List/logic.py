@@ -1,113 +1,52 @@
-""" Todo App Logic
-    Coded by TechGYQ
-    www.mythosworks.com
-    OC:2024.07.18(1600) """
+# Imports
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+import time
 
 
-from sqlalchemy import create_engine, Column, Integer, String, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-# Define the database
-DATABASE_URL = "sqlite:///todo_app.db"
-
-# Create the database engine
-engine = create_engine(DATABASE_URL, echo=True)
-
-# Create a configured "Session" class
-Session = sessionmaker(bind=engine)
-
-# Create a session
-session = Session()
-
-# Define the base class
-Base = declarative_base()
+# Vars
+CURRENT_TIME = time.strftime("%Y.%B.%d - %H:%M:%S")
+APP_INFO = """ 
+               Get'R Done (To-Do App)
+               Coded by TechGYQ
+               www.mythosworks.com
+               OC:2024.09.21(2118) 
+            """
 
 
-# Define the Todo model
-class TodoItem(Base):
-    __tablename__ = 'todos'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String, nullable=False)
-    completed = Column(Boolean, default=False)
+# Database creation & setup if not found.
+class Base(DeclarativeBase):
+    pass
 
 
-# Create the tables in the database
-# Base.metadata.create_all(engine)
+db = SQLAlchemy(model_class=Base)
 
 
-class Logic:
+class Task(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    status: Mapped[bool]
+    name: Mapped[str] = mapped_column(primary_key=True)
+    begin: Mapped[str]
+    finish: Mapped[str]
+
+
+# Main logic for all versions of app.
+class Logic(Flask):
     def __init__(self):
-        self.session = session
-        self.is_running = True
-        self.todos = []
-        self.comps = []
+        super(Logic).__init__()
+        self.app = Flask(__name__)
+        self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///Data/TODO.db"
+        db.init_app(self.app)
+        with self.app.app_context():
+            db.create_all()
+        self.todos = {}
+        self.complete = {}
 
-    def load_data(self):
-        self.todos = self.session.query(TodoItem).filter_by(completed=False).all()
-        self.comps = self.session.query(TodoItem).filter_by(completed=True).all()
+    # Prints app info.
+    @staticmethod
+    def app_info():
+        print(APP_INFO)
 
-    def save_data(self):
-        self.session.commit()
+    # Grab stored data for to-do's & completed tasks.
 
-    def show_items(self):
-        self.load_data()  # Ensure the data is loaded
-        return self.todos  # Return the list of todo items
-
-    def add_item(self, new_item):
-        new_todo = TodoItem(description=new_item)
-        self.session.add(new_todo)
-        self.save_data()
-        print(f"{new_item} successfully added to list!\n")
-        self.load_data()
-
-    def edit_item(self, index, update_item):
-        try:
-            todo = self.session.query(TodoItem).get(index)
-            if todo and not todo.completed:
-                before = todo.description
-                todo.description = update_item
-                self.save_data()
-                print(f"{before} was changed to {update_item}.\n")
-                self.load_data()
-            else:
-                print("That is not a valid selection or item is already completed!")
-        except ValueError:
-            print("That is not a valid selection!")
-
-    def delete_item(self, index):
-        try:
-            todo = self.session.query(TodoItem).get(index)
-            if todo:
-                self.session.delete(todo)
-                self.save_data()
-                print(f"{todo.description} has been removed!")
-                self.load_data()
-            else:
-                print("That is not a valid selection!")
-        except ValueError:
-            print("That is not a valid selection!")
-
-    def clear_items(self):
-        self.session.query(TodoItem).delete()
-        self.save_data()
-        self.load_data()
-        print("All lists have been cleared!")
-
-    def complete_task(self, index):
-        try:
-            todo = self.session.query(TodoItem).get(index)
-            if todo and not todo.completed:
-                todo.completed = True
-                self.save_data()
-                print(f"{todo.description} has been completed!\n")
-                self.load_data()
-            else:
-                print("That is not a valid selection or item is already completed!")
-        except ValueError:
-            print("That is not a valid selection!")
-
-    def exit_app(self):
-        self.is_running = False  # Set to False to exit the loop
-        self.save_data()
-        self.session.close()
